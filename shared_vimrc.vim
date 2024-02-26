@@ -1,12 +1,15 @@
 " Shared file that is updated via github
 
-
 " Basic settings------------------ {{{
 set relativenumber
+set number
 set foldlevel=0
 set sw=4
+set wrap
 set tabstop=4
 set hlsearch
+set dictionary?
+set dictionary+=/root/.vim/dictionary.txt
 " }}}
 
 nnoremap <space> viw
@@ -15,7 +18,7 @@ let mapleader = ","
 let maplocalleader = "\\"
 
 " Mappings---------------------- {{{
-nnoremap <leader>ev :vsplit $MYVIMRC<cr>G
+nnoremap <leader>ev :vsplit /root/vim/shared_vimrc.vim<cr>G
 nnoremap <leader>sv :source $MYVIMRC<cr>
 
 " easy mapping for esc
@@ -40,8 +43,6 @@ iabbrev @@ eric.berger48@gmail.com
 iabbrev pulbic public
 " }}}
 
-
-
 augroup filetype_java:
     " clear auto commands
     autocmd!
@@ -65,5 +66,8 @@ onoremap p i(
 " map the operator to the first occurrence of return
 onoremap b /return<cr>
 
-let java_dictionary = ["/root/.vim/dictionary.txt"]
-set dictionary=java_dictionary
+" nnoremap <leader>g :silent execute "grep! -Iris " . shellescape(expand("<cWORD>")) . " ."<cr>:copen 15<cr>
+
+" Plugins ---------------------------{{{
+execute "source /root/.vim/plugin/fold-column.vim"
+"-----------------------}}}
