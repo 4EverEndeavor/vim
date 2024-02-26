@@ -69,5 +69,5 @@ onoremap b /return<cr>
 " nnoremap <leader>g :silent execute "grep! -Iris " . shellescape(expand("<cWORD>")) . " ."<cr>:copen 15<cr>
 
 " Plugins ---------------------------{{{
-execute "source /root/.vim/plugin/fold-column.vim"
+execute "source /root/vim/plugins/fold-column.vim"
 "-----------------------}}}
