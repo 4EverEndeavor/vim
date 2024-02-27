@@ -10,7 +10,7 @@ if len(sys.argv) != 2:
 # Headers
 headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer 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'
+    'Authorization': ''
 }
 
 # Array values provided as parameter
