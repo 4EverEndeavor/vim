@@ -1,3 +1,4 @@
+synced with github ✅ 
 Debugger
   Expect script
 Error compiler
@@ -6,11 +7,10 @@ Auto complete
   Stores completions in file
   Calculates new completions via reflection
   When making a request, creates request object and populates all fields 
-Chat gpt integration
-  Simple prompt to paste
+Chat gpt integration ✅ 
 Go-to declaration
   Maybe link stuff? Or just a script
-File templates
+File templates ✅ 
   Api
   Test
 Refactoring tool
@@ -39,3 +39,4 @@ Time analyzer/key analyzer
 Optimize imports
 Java source code
 Java docs
+File explorer: S/Vexplorer ✅ 

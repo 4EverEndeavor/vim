@@ -7,7 +7,6 @@ set relativenumber
 set numberwidth=4 " set the line numbers to equal 4 spaces
 set hlsearch " highlight seaches 
 set number
-set foldlevel=0
 set sw=4
 set wrap
 set tabstop=4
@@ -70,7 +69,7 @@ augroup END
 " Vimscript file settings --------------------- {{{
 augroup filetype_vim:
     autocmd!
-    autocmd FileType vim setlocal foldmethod=marker
+    " autocmd FileType vim setlocal foldmethod=marker
 augroup END
 " }}}
 
@@ -85,6 +84,8 @@ onoremap b /return<cr>
 execute "source /Users/Eric/vim/plugins/fold-column.vim"
 execute "source /Users/Eric/vim/plugins/grep-operator.vim"
 execute "source /Users/Eric/vim/functional.vim"
+execute "source /Users/Eric/vim/open_ai/open-ai.vim"
+execute "source /Users/Eric/vim/template_generator.vim"
 "-----------------------}}}
 
 " emojis!
