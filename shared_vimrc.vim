@@ -86,7 +86,12 @@ execute "source /Users/Eric/vim/plugins/grep-operator.vim"
 execute "source /Users/Eric/vim/functional.vim"
 execute "source /Users/Eric/vim/open_ai/open-ai.vim"
 execute "source /Users/Eric/vim/template_generator.vim"
+execute "source /Users/Eric/vim/autocomplete/java_auto_complete.vim"
 "-----------------------}}}
+
+" java
+iabbrev sout System.out.println("
+iabbrev tE throws Exception
 
 " emojis!
 iabbrev rolling_eyes  <c-v>U1F644

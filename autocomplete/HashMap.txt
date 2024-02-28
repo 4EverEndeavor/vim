@@ -1,0 +1,70 @@
+Class Name: HashMap
+
+Fields: 
+
+private static final long serialVersionUID
+static final int DEFAULT_INITIAL_CAPACITY
+static final int MAXIMUM_CAPACITY
+static final float DEFAULT_LOAD_FACTOR
+static final int TREEIFY_THRESHOLD
+static final int UNTREEIFY_THRESHOLD
+static final int MIN_TREEIFY_CAPACITY
+transient Node[] table
+transient Set entrySet
+transient int size
+transient int modCount
+ int threshold
+final float loadFactor
+
+Methods: 
+
+public boolean remove(Object, Object)
+public Object remove(Object)
+public Object get(Object)
+public Object put(Object, Object)
+public Collection values()
+public Object clone()
+public void clear()
+static final int hash(Object)
+public boolean isEmpty()
+public Object replace(Object, Object)
+public boolean replace(Object, Object, Object)
+public void replaceAll(BiFunction)
+public int size()
+public Object merge(Object, Object, BiFunction)
+public Set entrySet()
+public void putAll(Map)
+public Object putIfAbsent(Object, Object)
+public Object compute(Object, BiFunction)
+private void readObject(ObjectInputStream)
+private void writeObject(ObjectOutputStream)
+public void forEach(BiConsumer)
+public boolean containsKey(Object)
+public Object computeIfAbsent(Object, Function)
+public Set keySet()
+public boolean containsValue(Object)
+public Object getOrDefault(Object, Object)
+public Object computeIfPresent(Object, BiFunction)
+static final int tableSizeFor(int)
+final float loadFactor()
+final int capacity()
+final Object putVal(int, Object, Object, boolean, boolean)
+final void treeifyBin(Node[], int)
+static Class comparableClassFor(Object)
+static int compareComparables(Class, Object, Object)
+final Node[] resize()
+final void putMapEntries(Map, boolean)
+final Node getNode(Object)
+ Node newNode(int, Object, Object, Node)
+ void afterNodeAccess(Node)
+ void afterNodeInsertion(boolean)
+ TreeNode replacementTreeNode(Node, Node)
+final Node removeNode(int, Object, Object, boolean, boolean)
+ void afterNodeRemoval(Node)
+ void reinitialize()
+ void internalWriteEntries(ObjectOutputStream)
+final Object[] prepareArray(Object[])
+ Object[] keysToArray(Object[])
+ Object[] valuesToArray(Object[])
+ Node replacementNode(Node, Node)
+ TreeNode newTreeNode(int, Object, Object, Node)
