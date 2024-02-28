@@ -7,10 +7,11 @@ if len(sys.argv) != 2:
     print("Usage: {} <prompt>".format(sys.argv[0]))
     sys.exit(1)
 
+
 # Headers
 headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer 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'
+    'Authorization': ''
 }
 
 # Array values provided as parameter
