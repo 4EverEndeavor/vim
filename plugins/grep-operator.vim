@@ -20,15 +20,6 @@ endfunc
 
 nnoremap <leader>q :call QuickfixToggle()<cr>
 
-let g:quickfix_is_open = 0
-function! QuickfixToggle()
-    if g:quickfix_is_open
-        cclose
-        let g:quickfix_is_open = 0
-        execute g:quickfix_return_window . "wincmd w"
-    else
-        let g:quickfix_return_window = winnr()
-        copen 15
-        let g:quickfix_is_open = 1
-    endif
-endfunction
+function QuickfixToggle()
+    if empty(filter(getwininfo(), {_, v -> v.quickfix})) | copen | else | cclose | endif
+endfunc

@@ -1,42 +1,32 @@
 synced with github ✅ 
 Debugger
-  Expect script
-Error compiler
-  Runs javac, takes output 
+Error compiler ✅ 
 Auto complete
-  Stores completions in file
-  Calculates new completions via reflection
-  When making a request, creates request object and populates all fields 
 Chat gpt integration ✅ 
 Go-to declaration
-  Maybe link stuff? Or just a script
 File templates ✅ 
-  Api
-  Test
 Refactoring tool
-  If methods can be separated, does so in one command
 Gradle stuff
-  Build tools
-  Run single test
+    check for any snapshot tags automatically
 Spring stuff
  Resolve placeholders
-  Create/check beans
+ Create/check beans
 Testing
   Would be super handy to have a script that checked for all necessary mocks and created all construction parameters
-Fuzzy file search
+Fuzzy file search ✅ 
 Git utility
-Create an entire service at one go 
 Digest an exception report
-  Go straight to issue fine/line
 Setters and getters
-Rethink file structure
+file structure ✅ 
 Auto import
-  Simple dictionary with manual entries
-Method creation
-  Autofills params, return value, return object
 Auto complete for loops
-Time analyzer/key analyzer 
-Optimize imports
 Java source code
 Java docs
 File explorer: S/Vexplorer ✅ 
+browser support
+    open -a "Google Chrome" http://stackoverflow.com http://wikipedia.org
+help
+    link to help in vim
+vimscript debugger
+do dynamo query right from data/model
+auto add package name when first opening a file.

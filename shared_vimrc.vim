@@ -2,6 +2,8 @@
 
 " Basic settings------------------ {{{
 " make sure we can backspace through newlines
+set autochdir
+set splitright
 set backspace=indent,eol,start
 set relativenumber
 set numberwidth=4 " set the line numbers to equal 4 spaces
@@ -11,41 +13,27 @@ set sw=4
 set wrap
 set tabstop=4
 set hlsearch
+set wildmenu
+set wildmode=longest:full,full
 " set dictionary?
 " set dictionary+=/root/.vim/dictionary.txt
 " }}}
+
+" Try this for debugging:
+" set verbose=9
+" set verbosefile=/Users/eric/vim/verbose_output
 
 " syntax highlighting
 if !exists("g:syntax_on")
     syntax enable
 endif
 
-nnoremap <space> viw
-
-let mapleader = ","
+let mapleader = " "
 let maplocalleader = "\\"
-
-" Mappings---------------------- {{{
-" nnoremap <leader>ev :vsplit /root/vim/shared_vimrc.vim<cr>G
-nnoremap <leader>sv :source $MYVIMRC<cr>
 
 " easy mapping for esc
 inoremap jk <esc>
 inoremap <esc> <nop>
-
-" tile navigation
-nnoremap K <c-w><up>
-nnoremap J <c-w><down>
-nnoremap L <c-w><right>
-nnoremap H <c-w><left>
-nnoremap <Up> <c-w>-
-nnoremap <Down> <c-w>+
-nnoremap <Left> <c-w><
-nnoremap <Right> <c-w>>
-
-" surround word with quotations
-nnoremap <leader>" viw<esc>a"<esc>bi"<esc>lel
-" }}}
 
 " Abbreviations-----------------{{{
 iabbrev adn and
@@ -78,15 +66,23 @@ onoremap p i(
 " map the operator to the first occurrence of return
 onoremap b /return<cr>
 
-" nnoremap <leader>g :silent execute "grep! -Iris " . shellescape(expand("<cWORD>")) . " ."<cr>:copen 15<cr>
-
 " Plugins ---------------------------{{{
+execute "source /Users/Eric/vim/common/java_common.vim"
+execute "source /Users/Eric/vim/common/vim_common.vim"
 execute "source /Users/Eric/vim/plugins/fold-column.vim"
 execute "source /Users/Eric/vim/plugins/grep-operator.vim"
 execute "source /Users/Eric/vim/functional.vim"
 execute "source /Users/Eric/vim/open_ai/open-ai.vim"
 execute "source /Users/Eric/vim/template_generator.vim"
 execute "source /Users/Eric/vim/autocomplete/java_auto_complete.vim"
+execute "source /Users/Eric/vim/navigation.vim"
+execute "source /Users/Eric/vim/debugger/common.vim"
+execute "source /Users/Eric/vim/debugger/vim_debugger.vim"
+execute "source /Users/Eric/vim/debugger/gradle_debugger.vim"
+execute "source /Users/Eric/vim/help/help.vim"
+execute "source /Users/Eric/vim/make/compile_java.vim"
+execute "source /Users/Eric/vim/where_i_left_off.vim"
+execute "source /Users/Eric/vim/test/java_unit_testing.vim"
 "-----------------------}}}
 
 " java
@@ -112,3 +108,33 @@ iabbrev clown <c-v>U1F921
 iabbrev shrug <c-v>U1F937
 iabbrev facepalm <c-v>U1F926
 iabbrev checked <c-v>U2705
+
+set tags+=/Users/eric/vim/tags
+
+nnoremap <space> <Nop>
+nnoremap <leader>sv :source $MYVIMRC<cr>
+nnoremap <leader>x :25Vexplore /Users/eric/Rhombus/<cr>
+
+" tile navigation
+nnoremap K <c-w><up>
+nnoremap J <c-w><down>
+nnoremap L <c-w><right>
+nnoremap H <c-w><left>
+nnoremap <Up> <c-w>-
+nnoremap <Down> <c-w>+
+nnoremap <Left> <c-w><
+nnoremap <Right> <c-w>>
+
+" surround word with quotations
+nnoremap <leader>" viw<esc>a"<esc>bi"<esc>lel
+
+nnoremap & :call NavigateToDeclaration()<cr>
+noremap <leader>o :call SearchAndPopulateQuickfix()<cr>
+noremap <leader>rj :call RefreshJavaFileIndex()<cr>
+noremap <leader>rc :call RefreshJavaClassIndex()<cr>
+
+" Testing
+nnoremap <leader>tu :call RunJavaUnitTest()<cr>
+
+" Save or update
+nnoremap <leader>s :update<cr>

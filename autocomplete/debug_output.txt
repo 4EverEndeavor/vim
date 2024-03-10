@@ -1,0 +1,8 @@
+
+
+In debug
+list
+testing!
+find start: 0
+finding completions for base:Obj
+completion: []

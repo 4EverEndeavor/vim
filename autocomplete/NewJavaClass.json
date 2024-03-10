@@ -1,0 +1,1 @@
+{"class_name":"java.util.HashMap","fields":{"name":"loadFactor","type":"float"},"methods":{"name":"newTreeNode","return_type":"java.util.HashMap$TreeNode","parameters":["int","java.lang.Object","java.lang.Object","java.util.HashMap$Node"]},"constructors":[["int"],["int","float"],["java.util.Map"],[]]}

@@ -1,53 +1,3 @@
-function! FindPackageName()
-    let prev_reg = @0
-    execute "normal! ggwvt;y"
-    let package_name = @0
-    let @0 = prev_reg
-    return package_name
-endfunction
-
-function! FindClassName()
-    let filename = expand('%:t')
-    let file_split = split(filename, "[.]")
-    let class_name = file_split[0]
-    return class_name
-endfunction
-
-function! FindParametersNope()
-    let l:start_res = searchpos(FindClassName() . '(', "w")
-    let l:start_res = searchpos('(', "w")
-    let l:stop_res = searchpos(')', "w")
-    let l:start_line = l:start_res[0]
-    let l:stop_line = l:stop_res[0]
-    echom "stop line: " . l:stop_line
-    if l:start_line ==# l:stop_line
-        echom "start == stop"
-        let l:parameters = getline(l:start_line)[l:start_res[1] : l:stop_res[1]]
-        return l:parameters
-    else
-        echom "start != stop"
-        let l:parameters = getline(l:start_line)[l:start_res[1] : ]
-        for line in range(l:start_line, l:stop_line)
-            echom "starting anoter line " . line
-            let l:parameters .= getline(line)
-        endfor
-    return l:parameters
-endfunction
-
-function! FindParameters()
-    let prev_reg = @0
-    let @/ = FindClassName() . '('
-    execute "normal! nelv%y"
-    let parameters = @0
-    let @0 = prev_reg
-    let parameters = substitute(parameters, '\%x00', '', 'g')
-    let parameters = substitute(parameters, '(', '', 'g')
-    let parameters = substitute(parameters, ')', '', 'g')
-    let parameters = split(parameters, ',')
-    let parameters = map(parameters, 'trim(v:val)')
-    return parameters
-endfunction
-
 function! NavigateToLastTest()
     let @/ = "@Test"
     execute "normal! N2j%"
@@ -55,10 +5,10 @@ endfunction
 
 function! CreateTestFile(file_name)
     echom "Creating new test file: " . a:file_name
-    let class_name = FindClassName()
+    let class_name = FindJavaClassName()
     let lower_class_name = substitute(class_name, '\v^\w', '\=tolower(submatch(0))', '')
-    let lines = ['package ' . FindPackageName() . ';']
-    let parameters = FindParameters()
+    let lines = ['package ' . FindJavaPackageName() . ';']
+    let parameters = FindJavaContructorParameters()
     call add(lines, '')
     call add(lines, 'import org.junit.jupiter.api.*;')
     call add(lines, 'import org.mockito.*;')

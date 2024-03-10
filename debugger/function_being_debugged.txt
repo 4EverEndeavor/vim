@@ -1,0 +1,11 @@
+let compile_command = "javac -d /users/eric/vim/classes -cp "
+let compile_command .= "/Users/eric/.jar/jackson-core-2.14.0.jar:"
+let compile_command .= "/Users/eric/.jar/jackson-databind-2.14.0.jar:"
+let compile_command .= "/Users/eric/.jar/jackson-annotations-2.14.0.jar"
+let compile_command .= " /Users/eric/vim/autocomplete/JavaToJsonFile.java "
+echom compile_command
+:silent let compile_output = system(compile_command)
+let run_command = 'java -cp /Users/eric/.jar/jackson-core-2.14.0.jar:/Users/eric/.jar/jackson-databind-2.14.0.jar:/Users/eric/.jar/jackson-annotations-2.14.0.jar:/Users/eric/vim/classes JavaToJsonFile java.util.HashSet'
+echom "run_command: " . run_command
+:silent let run_output = system(run_command)
+echom "run_output: " . string(run_output)
