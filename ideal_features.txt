@@ -6,6 +6,7 @@ Chat gpt integration ✅
 Go-to declaration
 File templates ✅ 
 Refactoring tool
+    recognize parameteres/vars that are not being used
 Gradle stuff
     check for any snapshot tags automatically
 Spring stuff
@@ -14,7 +15,7 @@ Spring stuff
 Testing
   Would be super handy to have a script that checked for all necessary mocks and created all construction parameters
 Fuzzy file search ✅ 
-Git utility
+Git utility ✅ 
 Digest an exception report
 Setters and getters
 file structure ✅ 
@@ -30,3 +31,11 @@ help
 vimscript debugger
 do dynamo query right from data/model
 auto add package name when first opening a file.
+typo checking for interface endpoints:
+    elliminate duplicate names
+    double check the full request paths for "//" or missing "/"
+
+common mistake auto check
+    declaring variable without using "let"
+    forgetting matching for/endfor, etc
+    forgetting ! in function

@@ -5,8 +5,9 @@ map <F10> :cprevious<Return>
 map <F11> :cnext<Return>
 
 function! GradleCompileJava()
-    set makeprg=gradle\ compileJava\ $*
-    execute ":make -p " . FindGradleHome()
+    " set makeprg=gradle\ compileJava\ $*
+    set makeprg=gradle\ compileJava\ testClasses\ $*
+    execute ":silent make -p " . FindGradleHome()
     execute ":copen"
 endfunc
 

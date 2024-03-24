@@ -1,3 +1,9 @@
+let g:currentLine = ''
+let g:db_chan = ''
+let g:db_job = ''
+let g:popup_window_id = ''
+let g:term_buf = ''
+
 " nnoremap <leader>dc :call CheckVimFileForErrorsAndNavigateToProblemLine()<cr>
 nnoremap <leader>d :call DebugVimFile()<cr>
 " nnoremap <leader>d :call RunVimDebugger()<cr>
@@ -110,24 +116,6 @@ function! RemoveDebuggerLines()
     :%s/ | call DB([0-9]\+\, execute(\":let l:\"))//g
 endfunc
 
-let g:breakpoints = []
-let g:in_break = 0
-let g:continuing = 0
-
-function! DebugVimFile()
-    " this needs to be at the front, otherwise the cursor position changes
-    let l:func_name = GetFunctionName()
-    call AddDebuggerLines()
-    call SetDebugMode()
-    " call SetBreakPoint()
-    call CreateDebuggerVariableWindow()
-    :source %
-    execute ":call " . l:func_name . "()"
-    call UnSetDebugMode()
-    call DeleteDebuggerVariableWindow()
-    call RemoveDebuggerLines()
-endfunc
-
 function! DB(line_number, local_vars)
     let g:debugger_variables['local vars'] = deepcopy(a:local_vars)
     " call UpdateDebuggerVariableWindow()
@@ -150,11 +138,11 @@ function! RunVimDebugger()
     :breakadd func CompleteJava 61
 endfunc
 
-function! CreateDebuggerVarsPopup()
-    let l:local_vars = ["Value Trunca..."]
-    let l:options = {'line':146}
-    let l:options['col'] = 11
-    let l:popup_window_id = popup_create(l:local_vars, l:options)
+function! CreateDebuggerVarsPopup(channel, vars)
+    :call popup_clear(1)
+    let l:options = {'line':"cursor-1"}
+    let l:options['col'] = "cursor"
+    let g:popup_window_id = popup_create(a:vars, l:options)
 endfunc
 
 let g:debugger_variables = {'local vars': {}, 'global vars': {}}
@@ -228,115 +216,189 @@ endfunction
 " Autocommand to trigger the update when the buffer is written
 " autocmd BufWritePost * call UpdateAndRefresh()
 
+
+" DEBUG MODE
 function! Step()
-    echom "step"
+    :call SendKeys("step\<cr>")
+    :call UpdatePosition()
+    :call GetAllLocalVarNames()
 endfunc
 
 function! Next()
-    echom "next"
+    :call SendKeys("next\<cr>")
+    :call UpdatePosition()
+    :call GetAllLocalVarNames()
 endfunc
 
 function! Continue()
-    echom "continue"
+    :call SendKeys("cont\<cr>")
+    :call UpdatePosition()
+    :call GetAllLocalVarNames()
 endfunc
 
 function! QuitDebugger()
-    echom "quit"
+    :call term_sendkeys(g:term_buf, "q\<cr>")
+    :call term_sendkeys(g:term_buf, ":q\<CR>")
+    :call UnSetDebugMode()
+    :call popup_clear(1)
 endfunc
 
 " Define a breakpoint sign
 sign define myBreakpoint text=●
 function! SetBreakPoint()
     let l:ln = line('.')
-    echom "Breakpoint set at: " . l:ln
     execute ":sign place " . l:ln . " line=".l:ln . " name=myBreakpoint"
-    let g:breakpoints += [l:ln]
+    let l:funcName = ParseGotoName()
+    let l:funcLine = search("^function! " . l:funcName, "n")
+    let l:breakLine = l:ln - l:funcLine
+    :call SendKeys("breakadd func " . l:breakLine . " " . ParseGotoName() . "\<cr>")
 endfunc
 
 function! RemoveBreakPoint()
-    echom "removing break"
     let l:ln = line('.')
-    let l:index = index(g:breakpoints, l:ln)
-    if l:index != -1
-        call remove(g:breakpoints, index)
-    endif
+    :call SendKeys("breakdel *\<cr>")
     execute "sign unplace " . l:ln
 endfunction
 
 function! Finish()
-    let g:continuing = 1
-    let g:in_break = 0
-    call UnSetDebugMode()
+    :call UnSetDebugMode()
+    :call SendKeys("finish\<cr>")
+endfunction
+" END DEBUG MODE
+
+function! ParseGotoName()
+    let l:numLines = line('$', bufwinid(g:term_buf))
+    for l:ln in range(l:numLines, 1, -1)
+        let l:termLine = term_getline(g:term_buf, l:ln)
+        if l:termLine =~ "^function "
+            return matchlist(l:termLine, "\\(\[a-zA-Z_]\\+\\)$")[1]
+        endif
+    endfor
+endfunc
+
+function! ParseGotoLine()
+    let l:numLines = line('$', bufwinid(g:term_buf))
+    for l:ln in range(l:numLines, 1, -1)
+        let l:termLine = term_getline(g:term_buf, l:ln)
+        if l:termLine =~ "^line "
+            return matchlist(l:termLine, "^line\\s\\+\\([0-9]\\+\\):")[1]
+        endif
+    endfor
+endfunc
+
+function! UpdatePosition()
+    let l:goToName = ParseGotoName()
+    let l:goToLine = ParseGotoLine()
+    let l:goToFile = FindFileForFunc(l:goToName)
+    if l:goToFile != expand('%:p')
+        let l:goToFile = substitute(l:goToFile, '\r', '', 'g')
+        for i in range(len(l:goToFile))
+            echom char2nr(l:goToFile[i]) . ' '
+        endfor
+        let l:viewCmd = "view " . l:goToFile
+        execute l:viewCmd
+    endif
+    let l:funcLineBegins = search("^function! " . l:goToName)
+    call cursor(l:funcLineBegins + l:goToLine, 0)
+endfunc
+
+function! FindFileForFunc(funcName)
+    for l:scriptObj in getscriptinfo()
+        let l:sid = l:scriptObj.sid
+        let l:functions = getscriptinfo({'sid':l:sid})['functions']['functions']
+        if index(l:functions, a:funcName) != -1
+            return l:scriptObj['name']
+        endif
+    endfor
+    echoerr "no file found for func name: " . a:funcName
 endfunction
 
-let g:saved_mappings = {}
+function! DbCallback(channel, message)
+    echom "prompt: " . a:message
 
+    let l:funcName = ''
+    let l:funcMatch = matchlist(a:message, "function \\(\\a\\+\\)")
+    if !empty(l:funcMatch)
+        let l:funcName = l:funcMatch[1]
+    endif
 
+    let l:lineNumber = ''
+    let l:lineMatch = matchlist(a:message, "line \\([0-9]\\+\\)")
+    if !empty(l:lineMatch)
+        let l:lineNumber = l:lineMatch[1]
+    endif
 
-function! GetFunctionName()
-    execute "normal! viwy"
-    return @0
-endfunction
+    let l:funcFile = ''
+    if !empty(l:funcName)
+        let l:funcFile = FindFileForFunc(l:funcName)
+    endif
 
-function! OutHandler(channel, message)
-    echom "message received: " . string(a:message)
-endfunction
-function! ErrHandler(channel, message)
-    echom "message received: " . string(a:message)
-endfunction
-
-function! InitFE()
-    :let channel = ch_open('localhost:8765')
-    :call ch_sendexpr(channel, "{\"client\":\"frontend\"}")
+    if !empty(l:funcFile) && !empty(l:funcName) && !empty(l:lineNumber)
+        " call input('INPUT: ' . l:funcName . ' : ' . l:lineNumber . ' : ' . l:funcFile)
+        if l:funcFile != expand('%:p')
+            " call input("moving to file: " . l:funcFile)
+            let l:funcFile = substitute(l:funcFile, '\r', '', 'g')
+            for i in range(len(l:funcFile))
+                echom char2nr(l:funcFile[i]) . ' '
+            endfor
+            let l:viewCmd = "view " . l:funcFile
+            " call input("type: " . type(l:funcFile))
+            " call input("Command: " . l:viewCmd)
+            execute l:viewCmd
+            " :view l:funcFile
+        endif
+        execute "normal! /^function! " . l:funcName . "\<cr>"
+        execute "normal! " . l:lineNumber . "j"
+        let g:currentLine = line('.')
+    endif
 endfunc
 
-function! SendFE()
-    :call ch_sendexpr(channel, "{\"to\":\"backend\", \"message\":\"Hello BE\"}")
+function! DebugSelf(debuggeeCommand)
+    call SetDebugMode()
+    let g:currentLine = line('.')
+    :let l:currentFile = expand('%:p')
+    " :let g:db_job = job_start("vim -R " . l:currentFile, {'mode':'raw', 'callback':'DbCallback'})
+    :let g:db_job = job_start("vim -R " . l:currentFile, {'mode':'raw'})
+    :let g:db_chan = job_getchannel(g:db_job)
+    :call ch_logfile("/Users/eric/vim/debugger/db_log.txt", 'w')
+    :call ch_sendraw(g:db_chan, ":" . a:debuggeeCommand . "\<cr>")
+    " :call ch_sendexpr(g:db_chan, ":" . a:debuggeeCommand . "\<cr>")
 endfunc
 
-function! InitBE()
-    :let channel = ch_open('localhost:8765')
-    :call ch_sendexpr(channel, "{\"client\":\"backend\"}")
+function! DebugTerm(debuggeeCommand)
+    let g:currentLine = line('.')
+    let l:currentFile = expand('%:p')
+    let l:window = winnr()
+    vs /Users/eric/vim/debugger/db_output.json
+    :set autoread
+    let g:term_buf = term_start("vim", {'term_rows':20})
+    " get number of lines in terminal buffer
+    " let l:numLines = line('$', bufwinid(g:term_buf))
+    call term_sendkeys(g:term_buf, ":" . a:debuggeeCommand . "\<cr>")
+    execute l:window . 'wincmd w'
+
+    call SetDebugMode()
 endfunc
 
-function! SendBE()
-    :call ch_sendexpr(channel, "{\"to\":\"frontend\", \"message\":\"Hello FE\"}")
+function! GetAllLocalVarNames()
+    call term_sendkeys(g:term_buf, "let l:varDict = {}\<cr>")
+    call term_wait(g:term_buf, 100)
+    let l:varNames = GetAllVariableMentionsInFunction()
+    for l:varName in l:varNames
+        call term_sendkeys(g:term_buf, "let l:varDict[\"" . l:varName . "\"] = " . l:varName . "\<cr>")
+        call term_wait(g:term_buf, 100)
+    endfor
+    call term_sendkeys(g:term_buf, "let l:json = json_encode(l:varDict)\<cr>")
+    call term_wait(g:term_buf, 100)
+    call term_sendkeys(g:term_buf, "call writefile([l:json], \"/Users/eric/vim/debugger/db_output.json\")\<cr>")
+    call term_wait(g:term_buf, 100)
 endfunc
 
-function! CloseS()
-    :call ch_close(channel)
-endfunc
-
-let g:db_chan = ''
-let g:db_job = ''
-
-function! DebugSelf()
-    :let g:job = job_start("vim -S start_back.vim test_debug_back.vim", {'mode':'raw'})
-    :let g:db_chan = job_getchannel(job)
-    :call ch_logfile(g:db_chan, "db_log.txt")
-    :call ch_sendraw(g:db_chan, "breakadd func DummyFunk2 11")
-    :call ch_sendraw(g:db_chan, "step")
-    :call ch_sendraw(g:db_chan, "step")
-    :call ch_sendraw(g:db_chan, "step")
-    :call ch_sendraw(g:db_chan, "step")
-    :call ch_sendraw(g:db_chan, "step")
-    :call ch_sendraw(g:db_chan, "step")
-endfunc
-
-function! SendMessage()
-    :call ch_sendexpr(channel, "breakadd func DummyFunk2 11")
-    :call ch_evalexpr(channel, "['ex','breakadd func DummyFunk2 11']")
-    :call ch_sendexpr(channel, "['ex','breaklist']")
-endfunc
-
-function! GetLocalVariableList()
+function! ParseVariableJson(l_var_list)
     let l_vars = {}
 
-    " Get the list of global variables
-    let l_var_list = execute("redir => gvar_list | silent let g: | redir END")
-
     " Process the list and populate the dictionary
-    for line in split(l_var_list, "\n")
+    for line in split(a:l_var_list, "\n")
       " Skip empty lines
       if line =~ '^\s*$'
         continue
@@ -344,7 +406,7 @@ function! GetLocalVariableList()
 
       " Extract variable name and value
       let parts = split(line, '=')
-      let var_name = substitute(trim(parts[0]), 'g:', '', '')
+      let var_name = substitute(trim(parts[0]), 'l:', '', '')
       let var_value = trim(parts[1])
 
       " Add the variable to the dictionary
@@ -353,4 +415,31 @@ function! GetLocalVariableList()
 
     " Display the content of the l_vars dictionary
     echo l_vars
+endfunc
+
+function! GetAllVariableMentionsInFunction()
+    " TODO for loop variables
+    let l:startLine = search("^function", "bn")
+    let l:varNames = []
+    for l:ln in range(l:startLine, line('.')-1)
+        let l:line = getline(l:ln)
+        if l:line =~ "\\s\\+let \[a-zA-Z_:]\\+ ="  
+            let l:varName = split(split(l:line, '=')[0], 'let')[1][1:-2]
+            let l:varNames += [l:varName]
+        endif
+    endfor
+    let l:signature = getline(l:startLine)
+    let l:ml = matchlist(l:signature, "(\\(.*\\))")
+    if l:ml[1] != ''
+        let l:params = split(l:ml[1], ', ')
+        call map(l:params, "'a:' . v:val")
+        let l:varNames += l:params
+    endif
+    
+    return ListToSet(l:varNames)
+endfunc
+
+function! SendKeys(keys)
+    call term_sendkeys(g:term_buf, a:keys)
+    call term_wait(g:term_buf, 100)
 endfunc

@@ -83,6 +83,9 @@ execute "source /Users/Eric/vim/help/help.vim"
 execute "source /Users/Eric/vim/make/compile_java.vim"
 execute "source /Users/Eric/vim/where_i_left_off.vim"
 execute "source /Users/Eric/vim/test/java_unit_testing.vim"
+execute "source /Users/Eric/vim/indexes.vim"
+execute "source /Users/Eric/vim/git_gui/git_history.vim"
+execute "source /Users/Eric/vim/refactor/js_refactor.vim"
 "-----------------------}}}
 
 " java

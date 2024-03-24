@@ -13,8 +13,6 @@ function! SearchAndPopulateQuickfix()
     let fuzzy_matcher = substitute(input_str, '\(.\)', '\1.*', 'g')
     let file_lines = readfile(expand("~/.vim_indexes/java_file_index"))
     let matching_file_lines = filter(file_lines, 'v:val =~# ".*' . input_str . '.*\.java"')
-    " let fuzzy_matching_file_lines = filter(file_lines, 'v:val =~# ".*' . fuzzy_matcher . '.*\.java"')
-    " let fuzzy_and_full = matching_file_lines + fuzzy_matching_file_lines
     call setqflist(map(matching_file_lines, '{ "filename": v:val }'))
     copen 15
 endfunction
@@ -35,3 +33,4 @@ function! JavaGoToDeclaration()
     execute '/\w\+ ' . word
     echom "word: " . word
 endfunc
+
