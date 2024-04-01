@@ -9,6 +9,11 @@ function! ReadVimDictFromJsonFile(filename)
 endfunc
 
 function! FindJavaPackageName()
+	if g:machine == "alpineXps"
+		return FindPlainJavaPackage()
+	elseif g:machine == "workMacbook"
+		echom "TODO!!"
+	endif
     let l:saved_pos = getpos('.')
     let prev_reg = @0
     execute "normal! ggwvt;y"
@@ -82,6 +87,16 @@ function! FindGradleHome()
     endfor
     execute ":cd " . l:saved_directory
     return l:retval
+endfunc
+
+function! FindPlainJavaPackage()
+    let l:saved_directory = trim(execute('pwd'))
+	let l:jh = finddir("java", ".;")
+	execute ":cd " . l:jh
+	let l:relPath = findfile(expand('%'))
+    execute ":cd " . l:saved_directory
+	let l:package = join(split(l:relPath, '/')[:-2], '.')
+	return l:package
 endfunc
 
 function! HasBuildGradle()

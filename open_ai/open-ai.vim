@@ -32,8 +32,8 @@ function! ChatGptCodeCompletion(prompt)
     " Escape special characters in URL and JSON data
     let escaped_prompt = shellescape(string(b:chat_messages))
 
-    call WriteVimDictToJsonFile(b:chat_messages, '/Users/eric/vim/open_ai/chat-message-history.json')
-    let python_script = "/Users/eric/vim/open_ai/open_ai.py"
+    call WriteVimDictToJsonFile(b:chat_messages, g:vimHome . '/open_ai/chat-message-history.json')
+    let python_script = g:vimHome . "/open_ai/open_ai.py"
     let run_chat_sh = 'python ' . python_script
 
     " Execute the shell script

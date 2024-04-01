@@ -5,7 +5,7 @@ function! WriteJavaClassMapJson(dict)
 endfunc
 
 function! ReadJavaClassMapJson()
-    let java_class_map = json_decode(join(readfile("/Users/eric/vim/autocomplete/JavaClassMap.json"), "\n"))
+    let java_class_map = json_decode(join(readfile(g:vimHome . "/autocomplete/JavaClassMap.json"), "\n"))
     return java_class_map
 endfunc
 
@@ -103,7 +103,7 @@ function! GetClassNameFromPath(path)
 endfunc
 
 function! GetVariableTypeCompletions(base)
-    let l:java_class_index = readfile("/Users/Eric/.vim_indexes/java_class_index", "r")
+    let l:java_class_index = readfile(g:vimIndex . "/java_class_index", "r")
     let l:just_class_names = map(l:java_class_index, 'GetClassNameFromPath(v:val)')
     let l:filtered = filter(l:just_class_names, 'v:val !~ "\\$"')
     return matchfuzzy(l:filtered, a:base)
@@ -117,7 +117,7 @@ function! ReturnCompletionsForBase(base)
     let l:statement = FindStatementText()
 
     if l:line ==# 1 && l:col ==# 1
-        let l:packageName = FindJavaPackageName() . ';'
+        let l:packageName = "package " . FindJavaPackageName() . ';'
         return [l:packageName]
     elseif l:col ==# 1
         return GetClassNameCompletions(a:base)
