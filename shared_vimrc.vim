@@ -15,9 +15,14 @@ set tabstop=4
 set hlsearch
 set wildmenu
 set wildmode=longest:full,full
+set foldmethod=syntax
+set foldlevel=1
 " set dictionary?
 " set dictionary+=/root/.vim/dictionary.txt
 " }}}
+
+" sort for file explorer
+let g:netrw_sort_sequence='src/,main/,test/,[\/]$,\<core\%(\.\d\+\)\=\>,\.h$,\.c$,\.cpp$,\~\=\*$,*,\.o$,\.obj$,\.info$,\.swp$,\.bak$,\~$,../,./'
 
 " Try this for debugging:
 " set verbose=9
@@ -88,6 +93,9 @@ execute "source " . g:vimHome . "/git_gui/git_history.vim"
 execute "source " . g:vimHome . "/refactor/js_refactor.vim"
 execute "source " . g:vimHome . "/transpile.vim"
 execute "source " . g:vimHome . "/documentionGen.vim"
+execute "source " . g:vimHome . "/jsonFormatting.vim"
+execute "source " . g:vimHome . "/templates/templates.vim"
+execute "source " . g:vimHome . "/settersGetters.vim"
 "-----------------------}}}
 
 " java

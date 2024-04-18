@@ -51,7 +51,7 @@ function! Sum(l)
     for l:number in a:l
         let l:total += l:number
     endfor
-    echo l:total
+    return l:total
 endfunction
 
 function! MatchesInList(list, pattern)

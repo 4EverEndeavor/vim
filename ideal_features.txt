@@ -28,7 +28,7 @@ browser support
     open -a "Google Chrome" http://stackoverflow.com http://wikipedia.org
 help
     link to help in vim
-vimscript debugger
+vimscript debugger ✅ 
 do dynamo query right from data/model
 auto add package name when first opening a file.
 typo checking for interface endpoints:

@@ -3,7 +3,7 @@ function! GetFuncsForTemplate(template)
     let l:funcsInTemplate = []
     for l:line in l:template_lines
         let l:funcMatch = matchstr(l:line, "\\a\\+(")[:-2]
-        echom l:funcMatch
+        " echom l:funcMatch
         if !empty(l:funcMatch) && index(l:funcsInTemplate, l:funcMatch) == -1
             let l:funcsInTemplate += [l:funcMatch]
         endif
@@ -40,8 +40,8 @@ function! CallsTheseOtherFuncs(source, funcName)
     endfor
 
     let l:level = 0
-    let l:funcStr = ''
     let l:foundEnd = 0
+    let l:otherFuncs = []
     for l in range(l:funcStart - 1, len(l:lines))
         let l:line = l:lines[l]
         for c in l:line
@@ -53,13 +53,13 @@ function! CallsTheseOtherFuncs(source, funcName)
                     let l:foundEnd = 1
                     break
                 endif
-            else
-                let l:funcStr .= c
             endif
         endfor
+        if l:line !~ "^\\s*function .*$" && match(l:line, ' \a\+(') > 0
+            let l:otherFuncs += Matches(l:line, ' \a\+(')
+        endif
         if l:foundEnd | break | endif
     endfor
-    let l:otherFuncs = Matches(l:funcStr, ' \a\+(')
     call map(l:otherFuncs, 'v:val["value"]')
     call map(l:otherFuncs, 'v:val[1:-2]')
     let l:otherFuncs = ListToSet(l:otherFuncs)
@@ -85,7 +85,8 @@ function! CanRefactor(source, funcName)
     endif
     let l:calledByOtherFuncs = CalledByTheseOtherFuncs(a:source, a:funcName)
     let l:calledByOthers = Sum(map(l:calledByOtherFuncs, "CanRefactor(a:source, v:val)"))
-    let l:callsOthers = Sum(map(CallsTheseOtherFuncs(a:source, a:funcName), "CanRefactor(a:source, v:val)"))
+    let l:callsTheseOtherFuncs = CallsTheseOtherFuncs(a:source, a:funcName)
+    let l:callsOthers = Sum(map(l:callsTheseOtherFuncs, "CanRefactor(a:source, v:val)"))
     " Called elsewhere in the code, like outside of a function
     return l:calledByOthers + l:callsOthers == 0
 endfunc

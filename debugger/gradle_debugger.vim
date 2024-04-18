@@ -1,7 +1,11 @@
 " add the following to build.gradle
+" bootRun if debugging remote server
 " test {
 "     jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'
 " }
+" try this next:
+" compileJava.options.debugOptions.debugLevel = "source,lines,vars"
+" compileTestJava.options.debugOptions.debugLevel = "source,lines,vars"
 
 function! GradleDaemonFuckingStuckHandler(channel, msg)
     if stridx(a:msg, "Listening for transport dt_socket at address: 5005") != -1

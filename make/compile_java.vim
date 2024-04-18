@@ -17,6 +17,7 @@ function! GradleCompileJava()
     set makeprg=gradle\ compileJava\ testClasses\ $*
     execute ":silent make -p " . FindGradleHome() . "\<cr>"
     execute ":copen"
+    execute "normal! /\\(error\\|BUILD SUCCESSFUL\\)"
 endfunc
 
 function! CompilePlainJava()

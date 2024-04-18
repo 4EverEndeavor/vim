@@ -1,9 +1,9 @@
 function! RefreshJavaFileIndex()
-    :!find ~/Rhombus -type f -name "*.java" > ~/.vim_indexes/java_file_index
+    :!find ~/Rhombus/rhombus-*/{src,service,api,data} -type f -name "*.java" > ~/.vim_indexes/java_file_index
 endfunc
 
 function! RefreshJavaClassIndex()
-    :!find ~/Rhombus -type f -name "*.class" > ~/.vim_indexes/java_class_index
+    :!find ~/Rhombus/rhombus-*/build/ -type f -name "*.class" > ~/.vim_indexes/java_class_index
 endfunc
 
 function! SearchAndPopulateQuickfix()
@@ -32,5 +32,15 @@ function! JavaGoToDeclaration()
     let word = @/
     execute '/\w\+ ' . word
     echom "word: " . word
+endfunc
+
+let s:choices = ['red', 'green', 'blue']
+function! ColorSelected(id, result)
+   echom a:id . " : " . s:choices[a:result-1]
+endfunc
+function! CreatePopupMenu()
+    call popup_menu(s:choices, #{
+            \ callback: 'ColorSelected',
+            \ })
 endfunc
 

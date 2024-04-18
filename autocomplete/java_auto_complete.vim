@@ -1,3 +1,59 @@
+function! IsMethod(line)
+    return a:line =~ "\\(public\\|protected\\|private\\) \\(static\\)* \\(\[a-zA-Z\.]*\\) \\(\\a\\+\\)(\\(.*\\));"
+endfunc
+
+function! GetMethod(line)
+    let l:method = {}
+    let l:ml = matchlist(a:line, "\\(public\\|protected\\|private\\) \\(static\\)* \\(\[a-zA-Z\.]*\\) \\(\\a\\+\\)(\\(.*\\));")
+    let l:method['modifier'] = l:ml[1]
+    let l:method['static'] = !empty(l:ml[2])
+    let l:method['returnType'] = l:ml[3]
+    let l:method['name'] = l:ml[4]
+    let l:method['params'] = l:ml[5]
+    return l:method
+endfunc
+
+function! IsField(line)
+    return a:line =~ "\\(public\\|protected\\|private\\) \\(static \\)*\\(final \\)*\\(\[a-zA-Z\.]*\\) \\(\\a\\+\\);"
+endfunc
+
+function! GetField(line)
+    let l:field = {}
+    let l:ml = matchlist(a:line, "\\(public\\|protected\\|private\\) \\(static \\)*\\(final \\)*\\(\[a-zA-Z\.]*\\) \\(\\a\\+\\);")
+    let l:field['modifier'] = l:ml[1]
+    let l:field['static'] = !empty(l:ml[2])
+    let l:field['final'] = !empty(l:ml[3])
+    let l:field['type'] = l:ml[4]
+    let l:field['name'] = l:ml[5]
+    return l:field
+endfunc
+
+function! GetClassNameFromOutput(line)
+    let l:group = "\\(\[a-zA-Z\.]*\\)"
+    let l:ml = matchlist(a:line, "class " . l:group)
+    return l:ml[1]
+endfunc
+
+function! RefreshJavaCompleteInfo()
+    let l:completions = {}
+    let l:count = 0
+    for l:classLine in readfile("/Users/eric/.vim_indexes/java_class_index")
+        let l:count += 1
+        echom l:count
+        let l:jpOut = systemlist("javap " . l:classLine)
+        let l:className = GetClassNameFromOutput(l:jpOut[1])
+        for l:line in l:jpOut[2:-2]
+            if IsMethod(l:line)
+                let l:completions[l:className] = GetMethod(l:line)
+            elseif IsField(l:line)
+                let l:completions[l:className] = GetField(l:line)
+            endif
+        endfor
+    endfor
+    let l:json = json_encode(l:completions)
+    call writefile([l:json], "/Users/eric/.vim_indexes/java_code_completions")
+endfunc
+
 function! WriteJavaClassMapJson(dict)
     let s:json = json_encode(a:dict)
     let s:path = expand('%:p:h') . '/JavaClassMap.json'
@@ -20,6 +76,37 @@ function! CreateNewMapEntry(class_name, java_class_map)
     let l:java_class_map[l:new_java_entry['class_name']] = l:new_java_entry
     WriteJavaClassMapJson(a:java_class_map)
     return l:new_java_entry
+endfunc
+
+function! RefreshJavaPClassInfo()
+    let l:classInfoMap = {}
+    for l:classLine in readfile("/Users/eric/.vim_indexes/java_class_index")
+        let l:output = systemlist("javap " . l:classLine)
+        let l:parsed = ParseJavapOutput(l:output)
+        let l:classInfoMap[l:classLine] = l:parsed
+    endfor
+    call writefile("~/.vim_indexes/javap_class_info")
+endfunc
+
+function! ParseJavapOutput(outputLines)
+    let l:obj = {}
+    let l:obj['signature'] = a:outputLines[1]
+    let l:obj['methods'] = []
+    let l:obj['fields'] = []
+    for l:ln in range(1, len(a:outputLines))
+        let l:line = a:outputLines[l:ln]
+        if l:line[-1:-1] != ";"
+            echom l:line[-1:-1]
+            echom l:line[-1:-1] != ";"
+            continue
+        elseif match(l:line, "(") > 0
+            " is method
+            let l:obj['methods'] += [l:line]
+        else
+            let l:obj['fields'] += [l:line]
+        endif
+    endfor
+    return l:obj
 endfunc
 
 function! CalculateJavaMethods(class_name)
@@ -52,7 +139,7 @@ function FindStatementText()
     return l:statementText
 endfunc
 
-" There are these completion posistions:
+" There are these completion positions:
 " 11: line 0, col 0. packageName
 " n1: line n, col 0. className
 " AccessModifier
@@ -77,13 +164,18 @@ function! FindBeginningOfWordPosition()
         return 1
     endif
     let l:column = col('.') - 1
-    while l:column > 1 && l:line[column - 1] =~ '\a'
+    while l:column > 1 && l:line[l:column - 1] =~ '[a-zA-Z\.]'
         let l:column -= 1
     endwhile
     return l:column
 endfunc
 
-function! GetClassNameCompletions()
+function! GetClassNameCompletions(base)
+    " search in java class index
+    " search in jdk classlist
+endfunc
+
+function! GetClassSignatureCompletions()
     let l:className = FindJavaClassName()
     let l:classComps = ['public class ' . l:className]
     let l:classComps += ['public static class ' . l:className]
@@ -114,55 +206,37 @@ function! ReturnCompletionsForBase(base)
     let l:java_class_map = ReadJavaClassMapJson()
     let l:line = line('.')
     let l:col = col('.')
-    let l:statement = FindStatementText()
+    let l:statement = FindStatementText() . a:base
 
     if l:line ==# 1 && l:col ==# 1
+        " This is currently broken. Need to find java home first
         let l:packageName = "package " . FindJavaPackageName() . ';'
         return [l:packageName]
     elseif l:col ==# 1
-        return GetClassNameCompletions(a:base)
+        return GetClassSignatureCompletions()
+    endif
+    
+    " new classes
+    if a:base =~ '\a\+\.'
+        return GetMethodsForBase(a:base)
     endif
 
-    if l:statement =~ "fi\\{0,1}n\\{0,1}a\\{0,1}l\\{0,1}$"
-        return ["final"]
-    endif
-
-    let l:matcher = "\\(;\\|{\\|}\\) \\(final\\)\\?"
-    let l:matcher .= " \\a*"
-    if l:statement =~ matcher
-        return GetVariableTypeCompletions(a:base)
-    endif
-
-    let l:matcher .= " = "
-    if l:statement =~ matcher
-        return ['new '] + GetVariableTypeCompletions(a:base)
-    endif
-
-    let l:matcher .= "new "
-    if l:statement =~ matcher
-        return GetVariableTypeCompletions(a:base)
-    endif
-
-    let l:matcher .= "\\(\\w\\+\.\\)\\+"
-    elseif l:statement =~ matcher
-        if !has_key(l:java_class_map, a:base)
-            CreateNewMapEntry(a:base, l:java_class_map)
-            let l:java_class_map = ReadJavaClassMapJson()
-        endif
-        return CalculateJavaMethods(l:java_class_map[a:base])
-    endif
 endfunc
 
 function! CompleteJava(findstart, base)
     if a:findstart
-        return FindBeginningOfWordPosition()
+        " return FindBeginningOfWordPosition()
+        debug let l:retval = FindBeginningOfWordPosition()
+        return l:retval
     else
-        return ReturnCompletionsForBase(a:base)
+        " return ReturnCompletionsForBase(a:base)
+        debug let l:retval = ReturnCompletionsForBase(a:base)
+        return l:retval
     endif
 endfunc
 
 function! Test_CompleteJava()
-    let l:completion = CompleteJava(0, "Obj")
+    let l:completion = CompleteJava(0, "    Obj")
     echom "completion: " . string(completion)
 endfunc
 

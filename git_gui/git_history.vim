@@ -10,3 +10,18 @@ function! s:ShowGitHistoryForSelection() range
 endfunc
 
 xnoremap mh :<c-u>call <sid>ShowGitHistoryForSelection()<cr>
+
+function! GitStatus()
+    let l:project_root = fnamemodify(systemlist('git rev-parse --show-toplevel')[0], ':p')
+    execute 'cd ' l:project_root
+    let git_job = term_start("git status")
+endfunc
+
+function! s:GitAdd()
+    for l:ln in range(line("'<"), line("'>"))
+        let l:add = split(getline(l:ln), "\\s\\+")[-1]
+        call system("git add " . l:add)
+    endfor
+endfunc
+
+xnoremap ma :<c-u>call <sid>GitAdd()<cr>

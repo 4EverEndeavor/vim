@@ -26,5 +26,6 @@ function! RunGradleBuildCallback(channel)
     execute ":vsplit | view test_output.txt"
     :set nowrap
     " execute "%s/^.*\]//g\<cr>"
-    execute "normal! /FAILED\<cr>"
+    call system("afplay /System/Library/Sounds/Glass.aiff")
+    execute "normal! /\\(BUILD SUCCESSFUL\\|FAILED\\)\<cr>"
 endfunc

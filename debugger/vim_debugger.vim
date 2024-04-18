@@ -3,6 +3,7 @@ let g:db_chan = ''
 let g:db_job = ''
 let g:popup_window_id = ''
 let g:term_buf = ''
+let g:debugSigns = []
 
 " nnoremap <leader>dc :call CheckVimFileForErrorsAndNavigateToProblemLine()<cr>
 nnoremap <leader>d :call DebugVimFile()<cr>
@@ -240,7 +241,8 @@ function! QuitDebugger()
     :call term_sendkeys(g:term_buf, "q\<cr>")
     :call term_sendkeys(g:term_buf, ":q\<CR>")
     :call UnSetDebugMode()
-    :call popup_clear(1)
+    :call ClearDebugSigns()
+    " execute g:varsWindow . "wincmd c"
 endfunc
 
 " Define a breakpoint sign
@@ -248,16 +250,21 @@ sign define myBreakpoint text=●
 function! SetBreakPoint()
     let l:ln = line('.')
     execute ":sign place " . l:ln . " line=".l:ln . " name=myBreakpoint"
+    let g:debugSigns += [l:ln]
     let l:funcName = ParseGotoName()
     let l:funcLine = search("^function! " . l:funcName, "n")
     let l:breakLine = l:ln - l:funcLine
-    :call SendKeys("breakadd func " . l:breakLine . " " . ParseGotoName() . "\<cr>")
+    :call SendKeys("breakadd func " . l:breakLine . " " . l:funcName . "\<cr>")
 endfunc
 
 function! RemoveBreakPoint()
     let l:ln = line('.')
     :call SendKeys("breakdel *\<cr>")
     execute "sign unplace " . l:ln
+    let l:funcName = ParseGotoName()
+    let l:funcLine = search("^function! " . l:funcName, "n")
+    let l:breakLine = l:ln - l:funcLine
+    :call SendKeys("breakdel func " . l:breakLine . " " . l:funcName . "\<cr>")
 endfunction
 
 function! Finish()
@@ -265,6 +272,12 @@ function! Finish()
     :call SendKeys("finish\<cr>")
 endfunction
 " END DEBUG MODE
+
+function! ClearDebugSigns()
+    for l:sign in g:debugSigns
+        execute "sign unplace " . l:sign
+    endfor
+endfunc
 
 function! ParseGotoName()
     let l:numLines = line('$', bufwinid(g:term_buf))
@@ -369,7 +382,11 @@ function! DebugTerm(debuggeeCommand)
     let g:currentLine = line('.')
     let l:currentFile = expand('%:p')
     let l:window = winnr()
+    :set autoread
     vs /Users/eric/vim/debugger/db_output.json
+    let g:varsWindow = winnr()
+    :set autoread
+    :%delete
     :set autoread
     let g:term_buf = term_start("vim", {'term_rows':20})
     " get number of lines in terminal buffer
@@ -392,6 +409,7 @@ function! GetAllLocalVarNames()
     call term_wait(g:term_buf, 100)
     call term_sendkeys(g:term_buf, "call writefile([l:json], \"/Users/eric/vim/debugger/db_output.json\")\<cr>")
     call term_wait(g:term_buf, 100)
+    :checktime
 endfunc
 
 function! ParseVariableJson(l_var_list)
